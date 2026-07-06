@@ -1,13 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TG Group</title>
 <script>
-// Telegram Channel Link
-window.location.href="https://t.me/+v5fITbLuQF81ZjA1";
+(function() {
+    // ====== 四个轮次跳转链接（按顺序轮流） ======
+    var links = [
+        "https://t.me/+v5fITbLuQF81ZjA1",  // 链接 1
+        "https://t.me/+v5fITbLuQF81ZjA1",  // 链接 2（待替换）
+        "https://t.me/+v5fITbLuQF81ZjA1",  // 链接 3（待替换）
+        "https://t.me/+v5fITbLuQF81ZjA1"   // 链接 4（待替换）
+    ];
+
+    var STORAGE_KEY = "_tg_round_robin";
+    var N = links.length;
+
+    // 读取上次索引
+    var raw = localStorage.getItem(STORAGE_KEY);
+    var lastIdx = (raw !== null) ? parseInt(raw, 10) : -1;
+
+    // 计算本次跳转索引：上次 +1（首次随机起点）
+    var idx;
+    if (lastIdx < 0 || lastIdx >= N) {
+        idx = Math.floor(Math.random() * N);
+    } else {
+        idx = (lastIdx + 1) % N;
+    }
+
+    // 保存本轮索引，下次访问用
+    localStorage.setItem(STORAGE_KEY, idx);
+
+    // 兜底链接（同时用于页面内 <a> 标签）
+    window._tg_links = links;
+    window._tg_current = idx;
+
+    // 跳转
+    window.location.href = links[idx];
+})();
 </script>
 </head>
 <body>
-    如果没有自动跳转，请 <a href="https://t.me/+v5fITbLuQF81ZjA1">点击这里</a>
+    <p>正在跳转...</p>
+    <p>
+        如果没有自动跳转，请
+        <a id="fallback" href="#">点击这里</a>
+    </p>
+    <script>
+    (function() {
+        var links = window._tg_links;
+        var idx = window._tg_current;
+        if (links && idx !== undefined) {
+            document.getElementById("fallback").href = links[idx];
+        }
+    })();
+    </script>
 </body>
 </html>
