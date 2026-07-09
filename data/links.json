@@ -4,34 +4,39 @@
     "label": "主频道",
     "url": "https://t.me/+v5fITbLuQF81ZjA1",
     "active": true,
-    "sort": 0
+    "sort": 0,
+    "daily_limit": null
   },
   {
     "id": "l_002",
     "label": "@Smileyhottie05",
     "url": "https://t.me/Smileyhottie05",
     "active": false,
-    "sort": 1
+    "sort": 1,
+    "daily_limit": 50
   },
   {
     "id": "l_003",
     "label": "@Sandae22510",
     "url": "https://t.me/Sandae22510",
     "active": true,
-    "sort": 2
+    "sort": 2,
+    "daily_limit": 50
   },
   {
     "id": "l_004",
     "label": "@naughtychxx",
     "url": "https://t.me/naughtychxx",
     "active": false,
-    "sort": 3
+    "sort": 3,
+    "daily_limit": 50
   },
   {
     "id": "l_005",
     "label": "@Likieme08",
     "url": "https://t.me/Likieme08",
     "active": false,
-    "sort": 4
+    "sort": 4,
+    "daily_limit": 50
   }
 ]

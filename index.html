@@ -7,38 +7,66 @@
 <script>
 (function() {
     var STORAGE_KEY = "_tg_round_robin";
+    var API = "http://1.162.177.72:9527/api/tg-hit";
 
-    function doJump(links) {
+    function fallbackJump(links) {
         var activeLinks = links.filter(function(l) { return l.active; });
         if (!activeLinks.length) {
             document.body.innerHTML = '<p style="text-align:center;padding-top:40px;">No active links configured.</p>';
             return;
         }
-
         var urls = activeLinks.map(function(l) { return l.url; });
         var N = urls.length;
-
         var raw = localStorage.getItem(STORAGE_KEY);
         var lastIdx = (raw !== null) ? parseInt(raw, 10) : -1;
-
         var idx;
         if (lastIdx < 0 || lastIdx >= N) {
             idx = Math.floor(Math.random() * N);
         } else {
             idx = (lastIdx + 1) % N;
         }
-
         localStorage.setItem(STORAGE_KEY, idx);
-
-        window._tg_links = urls;
-        window._tg_current = idx;
-
         window.location.href = urls[idx];
     }
 
-    fetch('data/links.json?t=' + Date.now())
+    function tryApi(links) {
+        var activeLinks = links.filter(function(l) { return l.active; });
+        if (!activeLinks.length) {
+            document.body.innerHTML = '<p style="text-align:center;padding-top:40px;">No active links configured.</p>';
+            return;
+        }
+
+        // Get last used link id from localStorage
+        var lastId = localStorage.getItem(STORAGE_KEY);
+        var idx = 0;
+        if (lastId) {
+            var found = activeLinks.findIndex(function(l) { return l.id === lastId; });
+            if (found >= 0) idx = (found + 1) % activeLinks.length;
+        }
+
+        var nextLink = activeLinks[idx];
+        var apiUrl = API + "?id=" + encodeURIComponent(nextLink.id);
+
+        fetch(apiUrl, { mode: "cors" })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.url) {
+                    // Save which link was used
+                    localStorage.setItem(STORAGE_KEY, data.link_id);
+                    window.location.href = data.url;
+                } else {
+                    fallbackJump(links);
+                }
+            })
+            .catch(function() {
+                // API unreachable, fall back to local round-robin
+                fallbackJump(links);
+            });
+    }
+
+    fetch("data/links.json?t=" + Date.now())
         .then(function(r) { return r.json(); })
-        .then(doJump)
+        .then(tryApi)
         .catch(function() {
             document.body.innerHTML = '<p style="text-align:center;padding-top:40px;">Loading failed. Please try again later.</p>';
         });
