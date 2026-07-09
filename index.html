@@ -7,59 +7,32 @@
 <script>
 (function() {
     var STORAGE_KEY = "_tg_round_robin";
-    var API = "https://september-ticket-trackback-combine.trycloudflare.com/api/tg-hit";
-
-    function fallbackJump(links) {
-        var activeLinks = links.filter(function(l) { return l.active; });
-        if (!activeLinks.length) {
-            document.body.innerHTML = '<p style="text-align:center;padding-top:40px;">No active links configured.</p>';
-            return;
-        }
-        var urls = activeLinks.map(function(l) { return l.url; });
-        var N = urls.length;
-        var raw = localStorage.getItem(STORAGE_KEY);
-        var lastIdx = (raw !== null) ? parseInt(raw, 10) : -1;
-        var idx;
-        if (lastIdx < 0 || lastIdx >= N) {
-            idx = Math.floor(Math.random() * N);
-        } else {
-            idx = (lastIdx + 1) % N;
-        }
-        localStorage.setItem(STORAGE_KEY, idx);
-        window.location.href = urls[idx];
-    }
-
-    function tryApi(links) {
-        var activeLinks = links.filter(function(l) { return l.active; });
-        if (!activeLinks.length) {
-            document.body.innerHTML = '<p style="text-align:center;padding-top:40px;">No active links configured.</p>';
-            return;
-        }
-        var lastId = localStorage.getItem(STORAGE_KEY);
-        var idx = 0;
-        if (lastId) {
-            var found = activeLinks.findIndex(function(l) { return l.id === lastId; });
-            if (found >= 0) idx = (found + 1) % activeLinks.length;
-        }
-        var nextLink = activeLinks[idx];
-        fetch(API + "?id=" + encodeURIComponent(nextLink.id))
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.url) {
-                    localStorage.setItem(STORAGE_KEY, data.link_id);
-                    window.location.href = data.url;
-                } else {
-                    fallbackJump(links);
-                }
-            })
-            .catch(function() {
-                fallbackJump(links);
-            });
-    }
 
     fetch("data/links.json?t=" + Date.now())
         .then(function(r) { return r.json(); })
-        .then(tryApi)
+        .then(function(links) {
+            var activeLinks = links.filter(function(l) { return l.active; });
+            if (!activeLinks.length) {
+                document.body.innerHTML = '<p style="text-align:center;padding-top:40px;">No active links configured.</p>';
+                return;
+            }
+
+            var urls = activeLinks.map(function(l) { return l.url; });
+            var N = urls.length;
+
+            var raw = localStorage.getItem(STORAGE_KEY);
+            var lastIdx = (raw !== null) ? parseInt(raw, 10) : -1;
+
+            var idx;
+            if (lastIdx < 0 || lastIdx >= N) {
+                idx = Math.floor(Math.random() * N);
+            } else {
+                idx = (lastIdx + 1) % N;
+            }
+
+            localStorage.setItem(STORAGE_KEY, idx);
+            window.location.href = urls[idx];
+        })
         .catch(function() {
             document.body.innerHTML = '<p style="text-align:center;padding-top:40px;">Loading failed. Please try again later.</p>';
         });
