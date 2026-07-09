@@ -6,56 +6,46 @@
 <title>TG Group</title>
 <script>
 (function() {
-    // ====== 五个链接轮转跳转 ======
-    var links = [
-        "https://t.me/+v5fITbLuQF81ZjA1",  // 主频道
-        "https://t.me/Sandae22510"           // @Sandae22510
-        // "https://t.me/Smileyhottie05",   // @Smileyhottie05 (暂停)
-        // "https://t.me/naughtychxx",       // @naughtychxx (暂停)
-        // "https://t.me/Likieme08"          // @Likieme08 (暂停)
-    ];
-
     var STORAGE_KEY = "_tg_round_robin";
-    var N = links.length;
 
-    // 读取上次索引
-    var raw = localStorage.getItem(STORAGE_KEY);
-    var lastIdx = (raw !== null) ? parseInt(raw, 10) : -1;
+    function doJump(links) {
+        var activeLinks = links.filter(function(l) { return l.active; });
+        if (!activeLinks.length) {
+            document.body.innerHTML = '<p style="text-align:center;padding-top:40px;">No active links configured.</p>';
+            return;
+        }
 
-    // 计算本次跳转索引：上次 +1（首次随机起点）
-    var idx;
-    if (lastIdx < 0 || lastIdx >= N) {
-        idx = Math.floor(Math.random() * N);
-    } else {
-        idx = (lastIdx + 1) % N;
+        var urls = activeLinks.map(function(l) { return l.url; });
+        var N = urls.length;
+
+        var raw = localStorage.getItem(STORAGE_KEY);
+        var lastIdx = (raw !== null) ? parseInt(raw, 10) : -1;
+
+        var idx;
+        if (lastIdx < 0 || lastIdx >= N) {
+            idx = Math.floor(Math.random() * N);
+        } else {
+            idx = (lastIdx + 1) % N;
+        }
+
+        localStorage.setItem(STORAGE_KEY, idx);
+
+        window._tg_links = urls;
+        window._tg_current = idx;
+
+        window.location.href = urls[idx];
     }
 
-    // 保存本轮索引，下次访问用
-    localStorage.setItem(STORAGE_KEY, idx);
-
-    // 兜底链接（同时用于页面内 <a> 标签）
-    window._tg_links = links;
-    window._tg_current = idx;
-
-    // 跳转
-    window.location.href = links[idx];
+    fetch('data/links.json?t=' + Date.now())
+        .then(function(r) { return r.json(); })
+        .then(doJump)
+        .catch(function() {
+            document.body.innerHTML = '<p style="text-align:center;padding-top:40px;">Loading failed. Please try again later.</p>';
+        });
 })();
 </script>
 </head>
 <body>
-    <p>正在跳转...</p>
-    <p>
-        如果没有自动跳转，请
-        <a id="fallback" href="#">点击这里</a>
-    </p>
-    <script>
-    (function() {
-        var links = window._tg_links;
-        var idx = window._tg_current;
-        if (links && idx !== undefined) {
-            document.getElementById("fallback").href = links[idx];
-        }
-    })();
-    </script>
+    <p>Loading...</p>
 </body>
 </html>

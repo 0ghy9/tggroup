@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TG Links Manager</title>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<style>
+:root {
+    --bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --border: #e2e8f0;
+    --text: #1a202c;
+    --text-muted: #718096;
+    --accent: #3182ce;
+    --accent-hover: #2b6cb0;
+    --green: #38a169;
+    --green-bg: #f0fff4;
+    --green-border: #c6f6d5;
+    --red: #e53e3e;
+    --red-bg: #fff5f5;
+    --red-border: #fed7d7;
+    --amber: #d69e2e;
+    --amber-bg: #fffff0;
+    --amber-border: #fefcbf;
+    --radius: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    font-size: 14px;
+}
+.container { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+
+/* Header */
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.header h1 { font-size: 22px; font-weight: 600; color: var(--text); }
+.header .status-row { display: flex; gap: 12px; align-items: center; }
+.status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+}
+.status-badge.synced { background: var(--green-bg); color: #276749; border: 1px solid var(--green-border); }
+.status-badge.unsaved { background: var(--amber-bg); color: #975a16; border: 1px solid var(--amber-border); }
+.status-badge.error { background: var(--red-bg); color: #9b2c2c; border: 1px solid var(--red-border); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.status-dot.synced { background: var(--green); }
+.status-dot.unsaved { background: var(--amber); }
+.status-dot.error { background: var(--red); }
+
+/* Card */
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+.card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 15px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.card-body { padding: 20px; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+th { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+td { font-size: 14px; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f7fafc; }
+.col-sort { width: 40px; text-align: center; }
+.col-label { width: 200px; }
+.col-url { width: auto; }
+.col-status { width: 90px; text-align: center; }
+.col-actions { width: 70px; text-align: center; }
+
+.drag-handle { cursor: grab; color: var(--text-muted); font-size: 16px; user-select: none; }
+.drag-handle:active { cursor: grabbing; }
+.sortable-ghost { opacity: 0.4; }
+
+/* Toggle switch */
+.toggle {
+    position: relative; display: inline-block; width: 44px; height: 24px;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle .slider {
+    position: absolute; cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #cbd5e0; border-radius: 24px;
+    transition: background 0.2s;
+}
+.toggle .slider:before {
+    content: ""; position: absolute;
+    height: 18px; width: 18px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%;
+    transition: transform 0.2s;
+}
+.toggle input:checked + .slider { background: var(--green); }
+.toggle input:checked + .slider:before { transform: translateX(20px); }
+
+/* Buttons */
+.btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500;
+    border: 1px solid transparent; cursor: pointer; text-decoration: none;
+    transition: background 0.15s, border-color 0.15s;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.btn-green { background: var(--green); color: white; }
+.btn-green:hover:not(:disabled) { background: #2f855a; }
+.btn-outline { background: white; color: var(--text); border-color: var(--border); }
+.btn-outline:hover:not(:disabled) { background: #f7fafc; }
+.btn-danger { background: none; color: var(--red); border-color: transparent; }
+.btn-danger:hover:not(:disabled) { background: var(--red-bg); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-group { display: flex; gap: 8px; }
+
+/* Add form */
+.add-row { display: flex; gap: 10px; align-items: flex-end; }
+.add-row .field { display: flex; flex-direction: column; gap: 4px; }
+.add-row .field label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.add-row input {
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 14px; outline: none; min-width: 0;
+}
+.add-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(49,130,206,0.15); }
+.add-row .field-label { flex: 1; }
+.add-row .field-url { flex: 3; }
+
+/* Toast */
+.toast {
+    position: fixed; top: 20px; right: 20px; z-index: 999;
+    padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateX(120%); transition: transform 0.3s ease;
+}
+.toast.show { transform: translateX(0); }
+.toast.success { background: var(--green-bg); color: #276749; border: 1px solid var(--green-border); }
+.toast.error { background: var(--red-bg); color: #9b2c2c; border: 1px solid var(--red-border); }
+
+/* Log output */
+.log-area {
+    background: #1a202c; color: #e2e8f0; font-family: "SF Mono", "Consolas", monospace;
+    font-size: 12px; padding: 12px 16px; border-radius: 6px;
+    max-height: 200px; overflow-y: auto; white-space: pre-wrap;
+    display: none;
+}
+.log-area.show { display: block; }
+
+/* Links info */
+.links-info { font-size: 13px; color: var(--text-muted); }
+
+/* Drag hint */
+.drag-hint {
+    font-size: 12px; color: var(--text-muted);
+    padding: 0 0 8px 16px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>TG Links Manager</h1>
+        <div class="status-row">
+            <span id="statusBadge" class="status-badge synced">
+                <span class="status-dot synced"></span>Synced
+            </span>
+            <button class="btn btn-green btn-sm" id="btnPush" onclick="pushToGitHub()">
+                Push to GitHub
+            </button>
+        </div>
+    </div>
+
+    <!-- Links Card -->
+    <div class="card">
+        <div class="card-header">
+            <span>Links</span>
+            <span class="links-info" id="linksCount">0 active / 0 total</span>
+        </div>
+        <div class="drag-hint">Drag the handle to reorder (rotation priority)</div>
+        <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-sort">#</th>
+                    <th class="col-label">Label</th>
+                    <th class="col-url">URL</th>
+                    <th class="col-status">Active</th>
+                    <th class="col-actions"></th>
+                </tr>
+            </thead>
+            <tbody id="linksTable">
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <!-- Add Link Card -->
+    <div class="card">
+        <div class="card-header">Add Link</div>
+        <div class="card-body">
+            <div class="add-row">
+                <div class="field field-label">
+                    <label>Label</label>
+                    <input type="text" id="inputLabel" placeholder="e.g. @username" maxlength="50">
+                </div>
+                <div class="field field-url">
+                    <label>URL</label>
+                    <input type="text" id="inputUrl" placeholder="https://t.me/..." maxlength="200">
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="addLink()">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deploy Log -->
+    <div class="card" id="logCard" style="display:none;">
+        <div class="card-header">
+            <span>Deploy Log</span>
+            <button class="btn btn-sm btn-outline" onclick="document.getElementById('logContent').textContent='';document.getElementById('logCard').style.display='none'">Clear</button>
+        </div>
+        <div class="card-body">
+            <div class="log-area show" id="logContent"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+var LINKS = [];
+var UNSAVED = false;
+var API = '';
+
+// Detect if served by Python backend, otherwise use mock
+if (location.port) {
+    API = location.origin;
+}
+
+function showToast(msg, type) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + type + ' show';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function() { t.className = 'toast'; }, 3000);
+}
+
+function updateStatus() {
+    var badge = document.getElementById('statusBadge');
+    var dot = badge.querySelector('.status-dot');
+    badge.className = 'status-badge ' + (UNSAVED ? 'unsaved' : 'synced');
+    dot.className = 'status-dot ' + (UNSAVED ? 'unsaved' : 'synced');
+    badge.innerHTML = (UNSAVED ? '<span class="status-dot unsaved"></span>Unsaved changes' : '<span class="status-dot synced"></span>Synced');
+}
+
+function updateCount() {
+    var active = LINKS.filter(function(l) { return l.active; }).length;
+    document.getElementById('linksCount').textContent = active + ' active / ' + LINKS.length + ' total';
+}
+
+function generateId() {
+    return 'l_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function renderTable() {
+    var tbody = document.getElementById('linksTable');
+    tbody.innerHTML = LINKS.map(function(link, i) {
+        var urlDisplay = link.url.length > 45 ? link.url.slice(0, 45) + '...' : link.url;
+        return '<tr data-id="' + link.id + '">' +
+            '<td class="col-sort"><span class="drag-handle">::</span></td>' +
+            '<td class="col-label"><strong>' + escapeHtml(link.label) + '</strong></td>' +
+            '<td class="col-url"><code style="font-size:12px;">' + escapeHtml(urlDisplay) + '</code></td>' +
+            '<td class="col-status">' +
+                '<label class="toggle">' +
+                    '<input type="checkbox" ' + (link.active ? 'checked' : '') + ' onchange="toggleLink(\'' + link.id + '\')">' +
+                    '<span class="slider"></span>' +
+                '</label>' +
+            '</td>' +
+            '<td class="col-actions">' +
+                '<button class="btn btn-danger btn-sm" onclick="deleteLink(\'' + link.id + '\')" title="Delete">Delete</button>' +
+            '</td>' +
+        '</tr>';
+    }).join('');
+
+    // Init sortable
+    if (window._sortable) window._sortable.destroy();
+    window._sortable = Sortable.create(tbody, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: function() {
+            var rows = tbody.querySelectorAll('tr');
+            var newIds = Array.from(rows).map(function(r) { return r.dataset.id; });
+            LINKS = newIds.map(function(id) { return LINKS.find(function(l) { return l.id === id; }); });
+            LINKS.forEach(function(l, i) { l.sort = i; });
+            UNSAVED = true;
+            updateStatus();
+        }
+    });
+
+    updateCount();
+}
+
+function escapeHtml(s) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(s));
+    return div.innerHTML;
+}
+
+function toggleLink(id) {
+    var link = LINKS.find(function(l) { return l.id === id; });
+    if (!link) return;
+    link.active = !link.active;
+    UNSAVED = true;
+    updateStatus();
+    updateCount();
+}
+
+function addLink() {
+    var labelInp = document.getElementById('inputLabel');
+    var urlInp = document.getElementById('inputUrl');
+    var label = labelInp.value.trim();
+    var url = urlInp.value.trim();
+
+    if (!label || !url) { showToast('Label and URL are required', 'error'); return; }
+    if (!url.startsWith('https://t.me/')) { showToast('URL must start with https://t.me/', 'error'); return; }
+
+    LINKS.push({
+        id: generateId(),
+        label: label,
+        url: url,
+        active: true,
+        sort: LINKS.length
+    });
+
+    labelInp.value = '';
+    urlInp.value = '';
+    UNSAVED = true;
+    updateStatus();
+    renderTable();
+    showToast('Link added (unsaved)', 'success');
+}
+
+function deleteLink(id) {
+    if (!confirm('Delete this link?')) return;
+    LINKS = LINKS.filter(function(l) { return l.id !== id; });
+    LINKS.forEach(function(l, i) { l.sort = i; });
+    UNSAVED = true;
+    updateStatus();
+    renderTable();
+    showToast('Link deleted (unsaved)', 'success');
+}
+
+async function saveLinks() {
+    if (!API) {
+        showToast('Not running on local server. Please open via admin_server.py', 'error');
+        return;
+    }
+    try {
+        var resp = await fetch(API + '/api/links', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(LINKS, null, 2)
+        });
+        if (!resp.ok) throw new Error(await resp.text());
+        UNSAVED = false;
+        updateStatus();
+        showToast('Links saved to data/links.json', 'success');
+        return true;
+    } catch (e) {
+        showToast('Save failed: ' + e.message, 'error');
+        return false;
+    }
+}
+
+async function pushToGitHub() {
+    var btn = document.getElementById('btnPush');
+    btn.disabled = true;
+    btn.textContent = 'Pushing...';
+
+    // Save first
+    if (UNSAVED) {
+        var saved = await saveLinks();
+        if (!saved) { btn.disabled = false; btn.textContent = 'Push to GitHub'; return; }
+    }
+
+    // Push
+    showLog('Pushing to GitHub...');
+    try {
+        var resp = await fetch(API + '/api/deploy', { method: 'POST' });
+        var data = await resp.json();
+        if (data.success) {
+            showLog(data.output || 'Push successful');
+            showLog('[DONE] Deployed to GitHub Pages');
+            showToast('Pushed to GitHub successfully!', 'success');
+        } else {
+            showLog('[ERROR] ' + (data.error || 'Push failed'));
+            showToast('Push failed: ' + data.error, 'error');
+        }
+    } catch (e) {
+        showLog('[ERROR] ' + e.message);
+        showToast('Push failed: ' + e.message, 'error');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Push to GitHub';
+}
+
+function showLog(msg) {
+    var card = document.getElementById('logCard');
+    var content = document.getElementById('logContent');
+    card.style.display = 'block';
+    content.textContent += msg + '\n';
+    content.scrollTop = content.scrollHeight;
+}
+
+// Init
+async function init() {
+    if (API) {
+        try {
+            var resp = await fetch(API + '/api/links');
+            LINKS = await resp.json();
+        } catch (e) {
+            LINKS = [];
+            showToast('Failed to load links from server', 'error');
+        }
+    } else {
+        // Fallback: load from sample
+        LINKS = [];
+        showToast('Open via admin_server.py for full functionality', 'error');
+    }
+
+    // Sort by sort field
+    LINKS.sort(function(a, b) { return a.sort - b.sort; });
+
+    renderTable();
+    updateStatus();
+    updateCount();
+}
+
+init();
+</script>
+</body>
+</html>
