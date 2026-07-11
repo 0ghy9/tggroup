@@ -11,7 +11,7 @@
     "id": "l_002",
     "label": "@Smileyhottie05",
     "url": "https://t.me/Smileyhottie05",
-    "active": false,
+    "active": true,
     "sort": 1,
     "daily_limit": 50
   },
@@ -19,7 +19,7 @@
     "id": "l_003",
     "label": "@Sandae22510",
     "url": "https://t.me/Sandae22510",
-    "active": false,
+    "active": true,
     "sort": 2,
     "daily_limit": 50
   },
@@ -27,16 +27,8 @@
     "id": "l_004",
     "label": "@naughtychxx",
     "url": "https://t.me/naughtychxx",
-    "active": false,
+    "active": true,
     "sort": 3,
-    "daily_limit": 50
-  },
-  {
-    "id": "l_005",
-    "label": "@Likieme08",
-    "url": "https://t.me/Likieme08",
-    "active": false,
-    "sort": 4,
     "daily_limit": 50
   },
   {
@@ -44,20 +36,20 @@
     "label": "33510-group",
     "url": "https://t.me/+NN1wlK5TE1NmNjFh",
     "active": true,
-    "sort": 5
+    "sort": 4
   },
   {
     "id": "l_mrefnuo6rt8c",
     "label": "33975-group",
     "url": "https://t.me/+3tnBN3A05P8yMmIx",
     "active": false,
-    "sort": 6
+    "sort": 5
   },
   {
     "id": "l_mrefoqcxvn8z",
     "label": "33122-group",
     "url": "https://t.me/+UemoLybJuXI5NzZh",
     "active": true,
-    "sort": 7
+    "sort": 6
   }
 ]
