@@ -11,7 +11,7 @@
     "id": "l_002",
     "label": "@Smileyhottie05",
     "url": "https://t.me/Smileyhottie05",
-    "active": true,
+    "active": false,
     "sort": 1,
     "daily_limit": 50
   },
@@ -19,7 +19,7 @@
     "id": "l_003",
     "label": "@Sandae22510",
     "url": "https://t.me/Sandae22510",
-    "active": true,
+    "active": false,
     "sort": 2,
     "daily_limit": 50
   },
@@ -27,7 +27,7 @@
     "id": "l_004",
     "label": "@naughtychxx",
     "url": "https://t.me/naughtychxx",
-    "active": true,
+    "active": false,
     "sort": 3,
     "daily_limit": 50
   },
