@@ -3,7 +3,7 @@
     "id": "l_001",
     "label": "主频道",
     "url": "https://t.me/+v5fITbLuQF81ZjA1",
-    "active": false,
+    "active": true,
     "sort": 0,
     "daily_limit": null
   },
@@ -11,14 +11,14 @@
     "id": "l_mrefmf4xledk",
     "label": "33510-group",
     "url": "https://t.me/+NN1wlK5TE1NmNjFh",
-    "active": false,
+    "active": true,
     "sort": 1
   },
   {
     "id": "l_mrefoqcxvn8z",
     "label": "33122-group",
     "url": "https://t.me/+UemoLybJuXI5NzZh",
-    "active": false,
+    "active": true,
     "sort": 2
   },
   {
@@ -32,7 +32,7 @@
     "id": "l_mriqccp1jekg",
     "label": "33231-group",
     "url": "https://t.me/+3tnBN3A05P8yMmIx",
-    "active": false,
+    "active": true,
     "sort": 4
   },
   {
