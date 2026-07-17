@@ -3,14 +3,14 @@
     "id": "l_mrki83x09cpp",
     "label": "主频道1",
     "url": "https://telegram.me/+v5fITbLuQF81ZjA1",
-    "active": true,
+    "active": false,
     "sort": 0
   },
   {
     "id": "l_mrki8s9c0ext",
     "label": "33510-group1",
     "url": "https://telegram.me/+NN1wlK5TE1NmNjFh",
-    "active": true,
+    "active": false,
     "sort": 1
   },
   {
@@ -31,7 +31,7 @@
     "id": "l_mrkiajhe0i3v",
     "label": "33231-group1",
     "url": "https://telegram.me/+3tnBN3A05P8yMmIx",
-    "active": true,
+    "active": false,
     "sort": 4
   },
   {
@@ -68,5 +68,12 @@
     "url": "https://t.me/+v5fITbLuQF81ZjA1",
     "active": false,
     "sort": 9
+  },
+  {
+    "id": "l_mrok1bb7oxm6",
+    "label": "coco",
+    "url": "https://telegram.me/missingCoco",
+    "active": true,
+    "sort": 10
   }
 ]
