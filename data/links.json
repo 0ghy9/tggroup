@@ -3,7 +3,7 @@
     "id": "l_mrki83x09cpp",
     "label": "主频道1",
     "url": "https://telegram.me/+v5fITbLuQF81ZjA1",
-    "active": true,
+    "active": false,
     "sort": 0
   },
   {
@@ -31,28 +31,28 @@
     "id": "l_mrkiajhe0i3v",
     "label": "33231-group1",
     "url": "https://telegram.me/+3tnBN3A05P8yMmIx",
-    "active": true,
+    "active": false,
     "sort": 4
   },
   {
     "id": "l_mrkiayt3h96k",
     "label": "33510-tg1",
     "url": "https://telegram.me/Sandae22510",
-    "active": false,
+    "active": true,
     "sort": 5
   },
   {
     "id": "l_mrkibiqjbsqn",
     "label": "33429-tg1",
     "url": "https://telegram.me/naughtychxx",
-    "active": false,
+    "active": true,
     "sort": 6
   },
   {
     "id": "l_mrkibzfk2d4a",
     "label": "33122-tg1",
     "url": "https://telegram.me/Smileyhottie05",
-    "active": false,
+    "active": true,
     "sort": 7
   },
   {
@@ -63,17 +63,10 @@
     "sort": 8
   },
   {
-    "id": "l_mrlpkq7raekz",
-    "label": "测试",
-    "url": "https://t.me/+v5fITbLuQF81ZjA1",
-    "active": false,
-    "sort": 9
-  },
-  {
     "id": "l_mrok1bb7oxm6",
     "label": "coco",
     "url": "https://telegram.me/missingCoco",
     "active": true,
-    "sort": 10
+    "sort": 9
   }
 ]
