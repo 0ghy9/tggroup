@@ -9,13 +9,26 @@ Only listens on 127.0.0.1 for security.
 import http.server
 import json
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 import urllib.parse
 
 PORT = 8765
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LINKS_FILE = os.path.join(ROOT, "data", "links.json")
+
+# Cloudflare Pages config (loaded from gitignored config file)
+_CF_CONFIG_FILE = os.path.join(ROOT, "cf_config.json")
+_cf_config = {}
+if os.path.exists(_CF_CONFIG_FILE):
+    with open(_CF_CONFIG_FILE, "r", encoding="utf-8") as f:
+        _cf_config = json.load(f)
+CF_API_TOKEN = _cf_config.get("api_token", "")
+CF_ACCOUNT_ID = _cf_config.get("account_id", "")
+CF_PROJECT_NAME = _cf_config.get("project_name", "")
+WRANGLER = _cf_config.get("wrangler", "")
 
 
 class AdminHandler(http.server.SimpleHTTPRequestHandler):
@@ -71,11 +84,23 @@ class AdminHandler(http.server.SimpleHTTPRequestHandler):
                 self._json_response(500, {"error": str(e)})
 
         elif parsed.path == "/api/deploy":
+            parts = []
+            errors = []
+            # GitHub Pages
             try:
-                output = self._git_deploy()
-                self._json_response(200, {"success": True, "output": output})
+                parts.append(self._git_deploy())
             except Exception as e:
-                self._json_response(500, {"success": False, "error": str(e)})
+                errors.append(f"GitHub: {e}")
+            # Cloudflare Pages
+            try:
+                parts.append("\n--- Cloudflare Pages ---\n" + self._cf_deploy())
+            except Exception as e:
+                errors.append(f"Cloudflare: {e}")
+            output = "\n".join(parts)
+            if errors:
+                self._json_response(200, {"success": True, "output": output, "warnings": errors})
+            else:
+                self._json_response(200, {"success": True, "output": output})
         else:
             self.send_error(404)
 
@@ -114,6 +139,40 @@ class AdminHandler(http.server.SimpleHTTPRequestHandler):
         run(["git", "push", "origin", "main"])
 
         return "\n".join(lines)
+
+    def _cf_deploy(self):
+        """Deploy static files to Cloudflare Pages via wrangler."""
+        deploy_dir = tempfile.mkdtemp(prefix="cf_deploy_")
+        try:
+            # Copy static files for deployment
+            shutil.copy(os.path.join(ROOT, "index.html"), deploy_dir)
+            data_dir = os.path.join(deploy_dir, "data")
+            os.makedirs(data_dir, exist_ok=True)
+            shutil.copy(LINKS_FILE, data_dir)
+
+            # Build environment with wrangler in PATH and CF credentials
+            env = dict(os.environ)
+            # Clear proxy to avoid connectivity issues
+            for k in ("http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY"):
+                env.pop(k, None)
+            node_dir = os.path.dirname(WRANGLER)
+            env["PATH"] = node_dir + ";" + env.get("PATH", "")
+            env["CLOUDFLARE_API_TOKEN"] = CF_API_TOKEN
+            env["CLOUDFLARE_ACCOUNT_ID"] = CF_ACCOUNT_ID
+
+            result = subprocess.run(
+                [WRANGLER, "pages", "deploy", deploy_dir,
+                 "--project-name=" + CF_PROJECT_NAME, "--branch=main"],
+                capture_output=True, text=True, timeout=120, env=env
+            )
+
+            out = result.stdout.strip()
+            if result.returncode != 0:
+                err = result.stderr.strip()
+                raise RuntimeError(f"CF deploy failed (exit {result.returncode}):\n{out}\n{err}")
+            return out
+        finally:
+            shutil.rmtree(deploy_dir, ignore_errors=True)
 
     def log_message(self, format, *args):
         # Suppress default logging, keep it clean

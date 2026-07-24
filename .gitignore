@@ -1,0 +1,4 @@
+cf_config.json
+server.log
+*.pyc
+__pycache__/
