@@ -7,7 +7,7 @@ export async function onRequestPost({ request, env }) {
   const message = clean(payload.message, MAX_MESSAGE_LENGTH), name = clean(payload.name, 50) || "未填写称呼", page = clean(payload.page, 300);
   if (message.length < 2) return Response.json({ error: "消息过短" }, { status: 400 });
   if (!env.TG_BOT_TOKEN || !env.TG_CHAT_ID) return Response.json({ error: "客服暂未配置" }, { status: 503 });
-  const text = `【ATELIER 网站客服】\n称呼：${name}\n消息：${message}\n页面：${page || "未知"}\n时间：${new Date().toISOString()}`;
+  const text = `【ATELIER 网站客服 → Captain】\n称呼：${name}\n消息：${message}\n页面：${page || "未知"}\n时间：${new Date().toISOString()}`;
   const telegram = await fetch(`https://api.telegram.org/bot${env.TG_BOT_TOKEN}/sendMessage`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ chat_id: env.TG_CHAT_ID, text, disable_web_page_preview: true }) });
   if (!telegram.ok) return Response.json({ error: "客服转发暂不可用" }, { status: 502 });
   return Response.json({ ok: true });
