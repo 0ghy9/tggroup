@@ -4,7 +4,8 @@ function clean(value, limit) {
   return String(value || "").replace(/[\u0000-\u001F\u007F]/g, " ").trim().slice(0, limit);
 }
 
-export async function onRequestPost({ request, env }) {
+async function support(request, env) {
+  if (request.method !== "POST") return Response.json({ error: "仅支持 POST" }, { status: 405 });
   const type = request.headers.get("content-type") || "";
   if (!type.includes("application/json")) return Response.json({ error: "请求格式错误" }, { status: 415 });
   let payload;
@@ -20,4 +21,4 @@ export async function onRequestPost({ request, env }) {
   return Response.json({ ok: true });
 }
 
-export async function onRequest() { return Response.json({ error: "仅支持 POST" }, { status: 405 }); }
+export default { fetch(request, env) { return new URL(request.url).pathname === "/api/support" ? support(request, env) : env.ASSETS.fetch(request); } };
